@@ -1,0 +1,67 @@
+#!/bin/bash
+
+projectName="MyCS"
+username=$(whoami)
+sections=$(ls / | egrep ^u[0-9]?$)
+
+for section in $sections; do
+    if [ -e "/${section}/${username}" ]; then
+        homepath="/${section}/${username}"
+    fi  
+done
+
+projectPath="${homepath}/.MyCS"
+settingPath="${projectPath}/.settings.properties"
+assignmentFileName="assignment"
+lectureFileName="lecture"
+practiceFileName="practice"
+
+echo "[${projectName}]: Welcome to the MyCS"
+echo "[${projectName}]: Starting MyCS setup..."
+
+if [ ! -e ${projectPath} ]; then
+	echo -n "creating project file..."
+	mkdir ${projectPath}
+	echo "done"
+else
+	echo "project file already exists"
+fi
+
+echo -n "creating setting file..."
+echo "username=${username}" > ${settingPath}
+echo "done"
+echo -n "configuring the setting file..."
+echo "homepath=${homepath}" >> ${settingPath}
+echo "projectPath=${projectPath}" >> ${settingPath}
+echo "assignmentFileName=${assignmentFileName}" >> ${settingPath}
+echo "lectureFileName=${lectureFileName}" >> ${settingPath}
+echo "practiceFileName=${practiceFileName}" >> ${settingPath}
+echo "done"
+
+if [ ! -e "${homepath}/.bash_profile" ]; then
+	echo -n "creating .bash_profile..."
+	touch "${homepath}/.bash_profile"
+	echo "done"
+else 
+	echo ".bash_profile already exist"
+fi
+
+sourceLine="source $(pwd)/executable/setup.bash"
+egrep "${sourceLine}" "${homepath}/.bash_profile" > /dev/null 2> /dev/null
+restartRequired=FALSE
+
+if [ ${?} -eq 1 ]; then
+	echo -n "setting .bash_profile..."
+	echo "# source setup for ${projectName}" >> ${homepath}/.bash_profile
+	echo "${sourceLine}" >> ${homepath}/.bash_profile
+	echo "done" 
+	restartRequired=TRUE
+else 
+	echo ".bash_profile already set up"
+fi
+
+if [ ${restartRequired} = TRUE ]; then
+	echo "Please restart the terminal to use MyCS"
+fi
+
+exit 0
