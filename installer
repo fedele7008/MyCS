@@ -1,67 +1,145 @@
-#!/bin/bash
+#!/bin/bash 
 
-projectName="MyCS"
-username=$(whoami)
-sections=$(ls / | egrep ^u[0-9]?$)
+sleepPeriod=0.8
 
-for section in $sections; do
-    if [ -e "/${section}/${username}" ]; then
-        homepath="/${section}/${username}"
-    fi  
+debug=FALSE
+if [ ${#} -gt 0 ]; then
+	if [ ${1} = "-debug" ]; then
+		debug=TRUE
+	fi
+fi
+
+base=$( basename -- ${0}; )
+currentDir=$( realpath -- ${0}; )
+currentDir=${currentDir//"/${base}"/""}
+
+# Check for needed files
+fileCheck="data/defaultSetting.properties executable/findUsernameAndHomePath executable/parseProperties executable/setup.bash"
+errorFound=FALSE
+for file in ${fileCheck}; do
+	if [ ! -e "${currentDir}/${file}" ]; then
+		if [ ${debug} = TRUE ]; then
+			echo "Critical Error: '${currentDir}/${file}' not found."
+		fi
+		errorFound=TRUE
+	fi
 done
 
-projectPath="${homepath}/.MyCS"
-settingPath="${projectPath}/.settings.properties"
-assignmentFileName="assignment"
-lectureFileName="lecture"
-practiceFileName="practice"
+if [ ${errorFound} = TRUE ]; then
+	if [ ${debug} = FALSE ]; then 
+		echo "Critical Error: Cannot find necessary files. Check the details with '-debug'."
+	fi
+	exit 1
+fi
 
-echo "[${projectName}]: Welcome to the MyCS"
-echo "[${projectName}]: Starting MyCS setup..."
+# Parse program setting
+source "${currentDir}/executable/parseProperties" "${currentDir}/data/defaultSetting.properties"
 
-if [ ! -e ${projectPath} ]; then
-	echo -n "creating project file..."
-	mkdir ${projectPath}
+# replace self referencing placeholders
+bashProfileLine1=${bashProfileLine1//":profileSetupFileName:"/${profileSetupFileName}}
+
+# find user from root
+source "${currentDir}/executable/findUsernameAndHomePath" ${userSectionPattern}
+
+# Start setting
+echo "[${projectName}]: Welcome to the MyCS setup"
+echo "[${projectName}]: Please confirm that you want to set 'MyCS' in (${currentDir})."
+echo "  To confirm, enter 'confirm'."
+echo "  To decline, enter 'decline'."
+read -p "[${username}]: " userInput
+
+if [ ${userInput} = "confirm" ]; then
+	echo "[${projectName}]: Starting MyCS setup."
+else
+	echo "[${projectName}]: Setup declined."
+	echo "[${projectName}]: To set the program in different location, move '${currentDir}' file to the location you want to setup then run the installer again." 
+	echo "[${projectName}]: 'mv ${currentDir} <path-to-new-location>'" 
+	exit 1
+fi
+
+# if user was not found from UW linux environment
+if [ ${userFound} = FALSE ]; then
+	homepath="~"
+fi
+
+# creating project station
+workStationPath="${homepath}/${workStationName}"
+if [ ! -e ${workStationPath} ]; then
+	echo -n "[${projectName}]: creating project station..."
+	mkdir ${workStationPath}
+	sleep ${sleepPeriod}
 	echo "done"
 else
-	echo "project file already exists"
+	echo "[${projectName}]: project station already exists."
 fi
 
-echo -n "creating setting file..."
-echo "username=${username}" > ${settingPath}
-echo "done"
-echo -n "configuring the setting file..."
-echo "homepath=${homepath}" >> ${settingPath}
-echo "projectPath=${projectPath}" >> ${settingPath}
-echo "assignmentFileName=${assignmentFileName}" >> ${settingPath}
-echo "lectureFileName=${lectureFileName}" >> ${settingPath}
-echo "practiceFileName=${practiceFileName}" >> ${settingPath}
+# creating user setting file
+userSettingPath=${userSettingPath//":stationpath:"/${workStationPath}}
+if [ ! -e ${userSettingPath} ]; then
+	echo -n "[${projectName}]: creating setting file..."
+else
+	echo -n "[${projectName}]: re-setting the setting file..."	
+fi
+echo "" > ${userSettingPath}
+sleep ${sleepPeriod}
 echo "done"
 
+# configuring user setting file
+echo -n "[${projectName}]: configuring the setting file..."
+echo "homepath=${homepath}" > ${userSettingPath}
+echo "stationPath=${workStationPath}" >> ${userSettingPath}
+echo "programLocation=${currentDir}" >> ${userSettingPath}
+echo "language=en" >> ${userSettingPath}
+sleep ${sleepPeriod}
+echo "done"
+
+# creating .bash_profile
 if [ ! -e "${homepath}/.bash_profile" ]; then
-	echo -n "creating .bash_profile..."
+	echo -n "[${projectName}]: creating .bash_profile..."
 	touch "${homepath}/.bash_profile"
+	sleep ${sleepPeriod}
 	echo "done"
-else 
-	echo ".bash_profile already exist"
+else
+	echo "[${projectName}]: ~/.bash_profile already exist."
 fi
 
-sourceLine="source $(pwd)/executable/setup.bash"
+# configuring .bash_profile
 restartRequired=FALSE
-egrep "${sourceLine}" "${homepath}/.bash_profile" > /dev/null 2> /dev/null
+bashProfileLine1=${bashProfileLine1//":projectpath:"/${currentDir}}
+egrep "${bashProfileLine1}" "${homepath}/.bash_profile" > /dev/null 2> /dev/null
 
 if [ ${?} -eq 1 ]; then
-	echo -n "setting .bash_profile..."
-	echo "# source setup for ${projectName}" >> ${homepath}/.bash_profile
-	echo "${sourceLine}" >> ${homepath}/.bash_profile
-	echo "done" 
+	echo -n "[${projectName}]: configuring the ~/.bash_profile..."
+	echo "" >> ${homepath}/.bash_profile
+	echo "# source setup for '${projectName}'." >> ${homepath}/.bash_profile
+	echo ${bashProfileLine1} >> ${homepath}/.bash_profile
 	restartRequired=TRUE
-else 
-	echo ".bash_profile already set up"
+	sleep ${sleepPeriod}
+	echo "done"
+else
+	echo "[${projectName}]: ~/.bash_profile is already set up."
 fi
 
-if [ ${restartRequired} = TRUE ]; then
-	echo "Please restart the terminal to use MyCS"
+bashProfileLine2=${bashProfileLine2//":envpath:"/"${currentDir}/executable"}
+egrep "${bashProfileLine2}" "${homepath}/.bash_profile" > /dev/null 2> /dev/null
+
+if [ ${?} -eq 1 ]; then
+	echo -n "[${projectName}]: setting environment variable..."
+	echo "" >> ${homepath}/.bash_profile
+	echo "# path setup for '${projectName}'." >> ${homepath}/.bash_profile
+	echo ${bashProfileLine2} >> ${homepath}/.bash_profile
+	restartRequired=TRUE
+	sleep ${sleepPeriod}
+	echo "done"
+else
+	echo "[${projectName}]: environment path is already set up."
+fi
+
+echo "[${projectName}]: MyCS setup complete."
+
+if [ ${restartRequired} = TRUE ]; then	
+	echo ""
+	echo "[${projectName}]: Please restart the terminal to start using MyCS."
 fi
 
 exit 0

@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# parseProperties (src): parses the key, value data from given argument file, the key matches to the name of bash variable
+# argument: <path to properties file>
+# export: <variables from file>
+# ignore: programSettingPath
+
+if [ ! -e ${programSettingPath} ] || [ ! ${#} -eq 1 ]; then
+    echo "Critical Error: program setting not found."
+    exit 1
+fi
+
+programSettingPath=${1}
+
+while IFS='=' read -r key value; do
+    key=$(echo $key | tr '.' '_')
+    eval ${key}=\${value}
+done < "${programSettingPath}"
+
