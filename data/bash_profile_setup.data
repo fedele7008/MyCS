@@ -1,0 +1,8 @@
+# source setup for <<program-name>>.
+<<program-path>>/executable/setup.bash
+
+# environment path setup for <<program-name>>.
+PATH=\${PATH}:<<executable-path>>
+
+# global variable setup for <<program-name>>.
+<<program-name>>_home=<<program-path>>
