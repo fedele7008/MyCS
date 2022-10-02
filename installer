@@ -108,12 +108,14 @@ else
 fi
 
 # Creating user setting
-user_setting_path="${program_path}/user/setting.properties"
 echo -n "${script0012}"
-echo "" > "${user_setting_path}"
+if [ ! -d "${program_path}/user" ]; then
+  mkdir "${program_path}/user"
+fi
 echo ${script0009}
 
 # Configuring user setting
+user_setting_path="${program_path}/user/setting.properties"
 echo -n "${script0013}"
 echo "home_path=${home_path}" > "${user_setting_path}"
 {
