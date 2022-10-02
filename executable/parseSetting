@@ -1,0 +1,4 @@
+#!/bin/bash
+source "${MyCS_path}/executable/parseProperties" "${MyCS_path}/data/program_setting.properties"
+source "${MyCS_path}/executable/parseProperties" "${MyCS_path}/user/setting.properties"
+source "${MyCS_path}/executable/parseLanguage" "${MyCS_path}/data/language/${lang}/${1}"

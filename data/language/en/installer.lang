@@ -1,0 +1,22 @@
+script0000="[${program_name}]: Welcome to the ${program_name} setup."
+script0001="[${program_name}]: Please confirm that you want to set '${program_name}' in (${program_path})."
+script0002="[${program_name}]:     To confirm, enter 'confirm'"
+script0003="[${program_name}]:     To decline, enter 'decline'"
+script0004="[${username}]: "
+script0005="[${program_name}]: Starting ${program_name} setup."
+script0006="[${program_name}]: Setup declined."
+script0007="[${program_name}]: To set the program in different location, move '${program_path}' folder to the location you want to setup then run the installer again."
+script0008="[${program_name}]: 'mv ${program_path} <new-path>'"
+script0009="done"
+script0010="[${program_name}]: Creating a new project station..."
+script0011="[${program_name}]: Project station already exists."
+script0012="[${program_name}]: Creating a user setting..."
+script0013="[${program_name}]: Configuring the user setting..."
+script0014="[${program_name}]: Creating a bash profile..."
+script0015="[${program_name}]: Bash profile already exists."
+script0016="[${program_name}]: Configuring the bash profile..."
+script0017="[${program_name}]: ${program_name} setup complete."
+script0018="[${program_name}]: Please restart the terminal to start using ${program_name}."
+
+
+

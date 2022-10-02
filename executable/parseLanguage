@@ -12,6 +12,7 @@ fi
 
 # convert to linux standard file
 dos2unix ${1} > /dev/null 2> /dev/null
+script=()
 
 while IFS='' read -r line; do
   egrep '=' <<< "${line}" > /dev/null 2> /dev/null
@@ -19,6 +20,11 @@ while IFS='' read -r line; do
     while IFS='=' read -r key value; do
       key=$(echo ${key} | tr '.' '_')
       eval ${key}=\${value}
+      script+=(${key})
     done <<< "${line}"
   fi
 done < ${1}
+
+for key in "${script[@]}"; do
+  eval "${key}"="\$(eval echo "\${"${key}"}")"
+done

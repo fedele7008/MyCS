@@ -1,2 +1,3 @@
+source "${MyCS_path}/executable/parseSetting" "setup.lang"
 alias cs="source cs"
-echo "MyCS is running. please check 'cs help' for details."
+echo "${script0000}"

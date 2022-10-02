@@ -1,145 +1,170 @@
-#!/bin/bash 
+#!/bin/bash
 
-sleepPeriod=0.8
+printHelp() {
+  echo "${1} installation guide"
+  echo "usage: '${0} [OPTION] [LANGUAGE]'"
+  echo "options:"
+  echo "  -debug : enable debug messages"
+  echo "language:"
+  echo "  -en : install the program and set the default language to English"
+  echo "  -kr : install the program and set the default language to Korean"
+}
 
+# Check if -debug flag is turned on
 debug=FALSE
-if [ ${#} -gt 0 ]; then
-	if [ ${1} = "-debug" ]; then
-		debug=TRUE
-	fi
-fi
-
-base=$( basename -- ${0}; )
-currentDir=$( realpath -- ${0}; )
-currentDir=${currentDir//"/${base}"/""}
-
-# Check for needed files
-fileCheck="data/defaultSetting.properties executable/findUsernameAndHomePath executable/parseProperties executable/setup.bash"
-errorFound=FALSE
-for file in ${fileCheck}; do
-	if [ ! -e "${currentDir}/${file}" ]; then
-		if [ ${debug} = TRUE ]; then
-			echo "Critical Error: '${currentDir}/${file}' not found."
-		fi
-		errorFound=TRUE
-	fi
+for arg in "${@}"; do
+  if [ ${arg} = "-debug" ]; then
+    debug=TRUE
+  fi
 done
 
-if [ ${errorFound} = TRUE ]; then
-	if [ ${debug} = FALSE ]; then 
-		echo "Critical Error: Cannot find necessary files. Check the details with '-debug'."
-	fi
-	exit 1
+# Find the current program path to install
+base=$(basename -- ${0};)
+program_path=$(realpath -- ${0};)
+program_path=${program_path//"/${base}"/""}
+
+# Check if required files list data exist
+requirement_file="${program_path}/data/installation_requirements.data"
+
+if [ ! -e "${requirement_file}" ]; then
+  echo "Critical Error: could not find installation requirement data"
+  exit 1
 fi
 
-# Parse program setting
-source "${currentDir}/executable/parseProperties" "${currentDir}/data/defaultSetting.properties"
+# Check if required files exist
+error=FALSE
+for required in $(cat ${requirement_file} | tr -d '\r'); do
+  if [ ! -e "${program_path}/${required}" ]; then
+    error=TRUE
+    not_found="${not_found} ${program_path}/${required}"
+  fi
+done
 
-# replace self referencing placeholders
-bashProfileLine1=${bashProfileLine1//":profileSetupFileName:"/${profileSetupFileName}}
+if [ ${error} = TRUE ]; then
+  echo "Critical Error: could not find required files for installation:"
+  for file in ${not_found}; do
+    echo "  ${file}"
+  done
+  exit 1
+fi
 
-# find user from root
-source "${currentDir}/executable/findUsernameAndHomePath" ${userSectionPattern}
+# Parse the default program setting
+program_setting_path="${program_path}/data/program_setting.properties"
+source "${program_path}/executable/parseProperties" "${program_setting_path}"
+lang=${default_lang}
 
-# Start setting
-echo "[${projectName}]: Welcome to the MyCS setup"
-echo "[${projectName}]: Please confirm that you want to set 'MyCS' in (${currentDir})."
-echo "  To confirm, enter 'confirm'."
-echo "  To decline, enter 'decline'."
-read -p "[${username}]: " userInput
+# Check flag options
+for flag in "${@}"; do
+  if [ ${flag} = "-help" ]; then
+    printHelp ${program_name}
+    exit 1
+  elif [ ${flag} = "-en" ]; then
+    lang=en
+  elif [ ${flag} = "-kr" ]; then
+    lang=kr
+  elif [ ${flag} = "-debug" ]; then
+    continue
+  else
+    echo "The argument ${flag} is not found."
+    echo "Please check the available options fron '${0} -help'."
+    exit 1
+  fi
+done
 
-if [ ${userInput} = "confirm" ]; then
-	echo "[${projectName}]: Starting MyCS setup."
+# Determine the home path
+home_path=$(echo ~)
+
+# Determine the username
+username=$(whoami)
+
+# Parse language package
+language_source="${program_path}/data/language/${lang}/installer.lang"
+source "${program_path}/executable/parseLanguage" "${language_source}"
+
+# Confirm setting
+echo "${script0000}"
+echo "${script0001}"
+echo "${script0002}"
+echo "${script0003}"
+read -p "${script0004}" user_input
+
+if [ ${user_input} = "confirm" ]; then
+  echo "${script0005}"
 else
-	echo "[${projectName}]: Setup declined."
-	echo "[${projectName}]: To set the program in different location, move '${currentDir}' file to the location you want to setup then run the installer again." 
-	echo "[${projectName}]: 'mv ${currentDir} <path-to-new-location>'" 
-	exit 1
+  echo "${script0006}"
+  echo "${script0007}"
+  echo "${script0008}"
+  exit 1
 fi
 
-# if user was not found from UW linux environment
-if [ ${userFound} = FALSE ]; then
-	homepath="~"
-fi
-
-# creating project station
-workStationPath="${homepath}/${workStationName}"
-if [ ! -e ${workStationPath} ]; then
-	echo -n "[${projectName}]: creating project station..."
-	mkdir ${workStationPath}
-	sleep ${sleepPeriod}
-	echo "done"
+# Creating project station
+station_path="${home_path}/${station_name}"
+if [ ! -e "${station_path}" ]; then
+  echo -n "${script0010}"
+  mkdir ${station_path}
+  echo "${script0009}"
 else
-	echo "[${projectName}]: project station already exists."
+  echo "${script0011}"
 fi
 
-# creating user setting file
-userSettingPath=${userSettingPath//":stationpath:"/${workStationPath}}
-if [ ! -e ${userSettingPath} ]; then
-	echo -n "[${projectName}]: creating setting file..."
+# Creating user setting
+user_setting_path="${program_path}/user/setting.properties"
+echo -n "${script0012}"
+touch ${user_setting_path}
+echo ${script0009}
+
+# Configuring user setting
+echo -n "${script0013}"
+echo "home_path=${home_path}" > "${user_setting_path}"
+{
+  echo "station_path=${station_path}"
+  echo "program_path=${program_path}"
+  echo "lang=${lang}"
+} >> "${user_setting_path}"
+echo "${script0009}"
+
+# Creating bash profile
+bash_profile_path="${home_path}/.bash_profile"
+if [ ! -e "${bash_profile_path}" ]; then
+  echo -n "${script0014}"
+  touch "${bash_profile_path}"
+  echo "${script0009}"
 else
-	echo -n "[${projectName}]: re-setting the setting file..."	
-fi
-echo "" > ${userSettingPath}
-sleep ${sleepPeriod}
-echo "done"
-
-# configuring user setting file
-echo -n "[${projectName}]: configuring the setting file..."
-echo "homepath=${homepath}" > ${userSettingPath}
-echo "stationPath=${workStationPath}" >> ${userSettingPath}
-echo "programLocation=${currentDir}" >> ${userSettingPath}
-echo "language=en" >> ${userSettingPath}
-sleep ${sleepPeriod}
-echo "done"
-
-# creating .bash_profile
-if [ ! -e "${homepath}/.bash_profile" ]; then
-	echo -n "[${projectName}]: creating .bash_profile..."
-	touch "${homepath}/.bash_profile"
-	sleep ${sleepPeriod}
-	echo "done"
-else
-	echo "[${projectName}]: ~/.bash_profile already exist."
+  echo "${script0015}"
 fi
 
-# configuring .bash_profile
-restartRequired=FALSE
-bashProfileLine1=${bashProfileLine1//":projectpath:"/${currentDir}}
-egrep "${bashProfileLine1}" "${homepath}/.bash_profile" > /dev/null 2> /dev/null
+# Configuring bash profile
+echo -n "${script0016}"
+bash_profile_setup_path="${program_path}/data/bash_profile_setup.data"
+dos2unix "${bash_profile_setup_path}" > /dev/null 2> /dev/null
 
-if [ ${?} -eq 1 ]; then
-	echo -n "[${projectName}]: configuring the ~/.bash_profile..."
-	echo "" >> ${homepath}/.bash_profile
-	echo "# source setup for '${projectName}'." >> ${homepath}/.bash_profile
-	echo ${bashProfileLine1} >> ${homepath}/.bash_profile
-	restartRequired=TRUE
-	sleep ${sleepPeriod}
-	echo "done"
-else
-	echo "[${projectName}]: ~/.bash_profile is already set up."
-fi
+while IFS='' read -r line; do
+  line=$(eval echo "${line}")
+  egrep "^$" <<< "${line}" > /dev/null 2> /dev/null
+  if [ ${?} -eq 1 ]; then
+    sed -i '/'"${line//"/"/"\\/"}"'/d' "${bash_profile_path}"
+  fi
+  echo "${line}" >> "${bash_profile_path}"
+done < "${bash_profile_setup_path}"
 
-bashProfileLine2=${bashProfileLine2//":envpath:"/"${currentDir}/executable"}
-egrep "${bashProfileLine2}" "${homepath}/.bash_profile" > /dev/null 2> /dev/null
+consecutive=0
+temp_file=$(mktemp "${home_path}/.bash_profile_tempXXXX")
+while IFS='' read -r line; do
+  egrep "^$" <<< ${line} > /dev/null 2> /dev/null
+  if [ ${?} -eq 0 ]; then
+    consecutive=$((${consecutive} + 1))
+  else
+    consecutive=0
+  fi
 
-if [ ${?} -eq 1 ]; then
-	echo -n "[${projectName}]: setting environment variable..."
-	echo "" >> ${homepath}/.bash_profile
-	echo "# path setup for '${projectName}'." >> ${homepath}/.bash_profile
-	echo ${bashProfileLine2} >> ${homepath}/.bash_profile
-	restartRequired=TRUE
-	sleep ${sleepPeriod}
-	echo "done"
-else
-	echo "[${projectName}]: environment path is already set up."
-fi
+  if [ ! ${consecutive} -gt 1 ]; then
+    echo "${line}" >> "${temp_file}"
+  fi
+done < "${bash_profile_path}"
+mv "${temp_file}" "${bash_profile_path}"
 
-echo "[${projectName}]: MyCS setup complete."
+echo "${script0009}"
 
-if [ ${restartRequired} = TRUE ]; then	
-	echo ""
-	echo "[${projectName}]: Please restart the terminal to start using MyCS."
-fi
-
-exit 0
+echo "${script0017}"
+echo ""
+echo "${script0018}"

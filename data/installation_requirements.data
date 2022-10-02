@@ -1,4 +1,7 @@
 data/bash_profile_setup.data
-data/program_setting.bash
-data/language/en/installer.bash
-data/language/kr/installer.bash
+data/program_setting.properties
+data/language/en/installer.lang
+data/language/kr/installer.lang
+executable/parseProperties
+executable/parseLanguage
+executable/setup.bash

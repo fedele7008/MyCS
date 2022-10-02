@@ -1,0 +1,22 @@
+script0000="[${program_name}]: ${program_name} 간편 설치기."
+script0001="[${program_name}]: 정말로 '${program_name}' 를 해당 위치에 설치하시겠습니까? (${program_path})."
+script0002="[${program_name}]:     동의한다면 'confirm' 를 입력해주세요"
+script0003="[${program_name}]:     거절한다면 'decline' 를 입력해주세요"
+script0004="[${username}]: "
+script0005="[${program_name}]: ${program_name} 설치 시작."
+script0006="[${program_name}]: 설치 취소됌."
+script0007="[${program_name}]: 프로그램을 다른 경로에 설치하려면 프로그램파일(${program_path}) 를 원하는 위치에 옮긴후에 ${base} 를 다시 실행시켜주세요."
+script0008="[${program_name}]: 'mv ${program_path} <new-path>'"
+script0009="완료"
+script0010="[${program_name}]: 스테이션 생성중..."
+script0011="[${program_name}]: 스테이션이 이미 존재합니다."
+script0012="[${program_name}]: 유저 설정 생성중..."
+script0013="[${program_name}]: 유저 설정 구성중..."
+script0014="[${program_name}]: Bash 프로파일 생성중..."
+script0015="[${program_name}]: Bash 프로파일이 이미 존재합니다."
+script0016="[${program_name}]: Bash 프로파일 구성중..."
+script0017="[${program_name}]: ${program_name} 설치 완료."
+script0018="[${program_name}]: ${program_name} 를 사용하기 위해서 터미널을 다시시작 해주세요."
+
+
+
