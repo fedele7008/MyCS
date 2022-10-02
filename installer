@@ -110,7 +110,7 @@ fi
 # Creating user setting
 user_setting_path="${program_path}/user/setting.properties"
 echo -n "${script0012}"
-touch ${user_setting_path}
+echo "" > "${user_setting_path}"
 echo ${script0009}
 
 # Configuring user setting
