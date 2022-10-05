@@ -1,3 +1,54 @@
 #!/bin/bash
 
+# find argument
+removeAll=FALSE
+for arg in "${@}"; do
+	if [ ${arg^^} = "-ALL" ]; then
+		removeAll=TRUE
+	fi
+done
 
+program_path=${MyCS_path}
+source "${MyCS_path}/executable/parseSetting" "uninstaller.lang"
+
+home_path=$(echo ~)
+
+# removing station
+rm -r "${home_path}/${station_name}"
+
+# removing .bash_profile script
+bash_profile_path="${home_path}/.bash_profile"
+bash_profile_setup_path="${program_path}/data/bash_profile_setup.data"
+
+dos2unix "${bash_profile_setup_path}" > /dev/null 2> /dev/null
+
+while IFS='' read -r line; do
+  line=$(eval echo "${line}")
+  egrep "^$" <<< "${line}" > /dev/null 2> /dev/null
+  if [ ${?} -eq 1 ]; then
+    sed -i '/'"${line//"/"/"\\/"}"'/d' "${bash_profile_path}"
+  fi
+done < "${bash_profile_setup_path}"
+
+# rearrange .bash_profile
+consecutive=0
+temp_file=$(mktemp "${home_path}/.bash_profile_tempXXXX")
+while IFS='' read -r line; do
+  egrep "^$" <<< ${line} > /dev/null 2> /dev/null
+  if [ ${?} -eq 0 ]; then
+    consecutive=$((${consecutive} + 1))
+  else
+    consecutive=0
+  fi
+
+  if [ ! ${consecutive} -gt 1 ]; then
+    echo "${line}" >> "${temp_file}"
+  fi
+done < "${bash_profile_path}"
+mv "${temp_file}" "${bash_profile_path}"
+
+if [ ${removeAll} = "TRUE" ]; then
+	rm -r "${MyCS_path}"
+else
+	rm -r "${MyCS_path}/user/"
+fi
