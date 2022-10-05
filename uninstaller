@@ -14,7 +14,7 @@ source "${MyCS_path}/executable/parseSetting" "uninstaller.lang"
 home_path=$(echo ~)
 
 # removing station
-rm -r "${home_path}/${station_name}"
+echo "${home_path}/${station_name}"
 
 # removing .bash_profile script
 bash_profile_path="${home_path}/.bash_profile"
@@ -48,7 +48,7 @@ done < "${bash_profile_path}"
 mv "${temp_file}" "${bash_profile_path}"
 
 if [ ${removeAll} = "TRUE" ]; then
-	rm -r "${MyCS_path}"
+	echo "${MyCS_path}"
 else
-	rm -r "${MyCS_path}/user/"
+	echo "${MyCS_path}/user/"
 fi
