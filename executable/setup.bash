@@ -9,4 +9,5 @@ for file in "$(ls ${MyCS_path}/user/setup/)"; do
 done
 
 alias cs="source cs"
+alias uninstall_MyCS="source ${MyCS_path}/uninstaller"
 echo "${script0000}"
