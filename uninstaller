@@ -8,13 +8,13 @@ for arg in "${@}"; do
 	fi
 done
 
-program_path=${MyCS_path}
+echo "${MyCS_path}/executable/parseSetting"
 source "${MyCS_path}/executable/parseSetting" "uninstaller.lang"
 
 home_path=$(echo ~)
 
 # removing station
-if [[ -v "${station_name}" && -z "${station_name}" ]]; then
+if [ ! -v "${station_name}" -a ! -z "${station_name}" ]; then
   if [ -d "${home_path}/${station_name}" ]; then
     echo "${home_path}/${station_name}"
   fi
@@ -52,13 +52,13 @@ done < "${bash_profile_path}"
 mv "${temp_file}" "${bash_profile_path}"
 
 if [ ${removeAll} = "TRUE" ]; then
-  if [[ -v "${MyCS_path}" && -z "${MyCS_path}" ]]; then
+  if [ ! -v "${MyCS_path}" -a ! -z "${MyCS_path}" ]; then
     if [ -d "${MyCS_path}" ]; then
 	    echo "${MyCS_path}"
     fi
   fi
 else
-  if [[ -v "${MyCS_path}" && -z "${MyCS_path}" ]]; then
+  if [ ! -v "${MyCS_path}" -a ! -z "${MyCS_path}" ]; then
       if [ -d "${MyCS_path}/user" ]; then
   	    echo "${MyCS_path}/user"
       fi
